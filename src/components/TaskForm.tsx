@@ -35,6 +35,7 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
 
   useEffect(() => {
     if (!open) return;
+
     if (initial) {
       setTitle(initial.title);
       setRevenue(initial.revenue);
@@ -55,7 +56,10 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
   const duplicateTitle = useMemo(() => {
     const current = title.trim().toLowerCase();
     if (!current) return false;
-    const others = initial ? existingTitles.filter(t => t.toLowerCase() !== initial.title.toLowerCase()) : existingTitles;
+    const others = initial
+      ? existingTitles.filter(t => t.toLowerCase() !== initial.title.toLowerCase())
+      : existingTitles;
+
     return others.map(t => t.toLowerCase()).includes(current);
   }, [title, existingTitles, initial]);
 
@@ -68,16 +72,19 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
     !!status;
 
   const handleSubmit = () => {
-    const safeTime = typeof timeTaken === 'number' && timeTaken > 0 ? timeTaken : 1; // auto-correct
+    const safeTime = typeof timeTaken === 'number' && timeTaken > 0 ? timeTaken : 1;
+
     const payload: Omit<Task, 'id'> & { id?: string } = {
       title: title.trim(),
       revenue: typeof revenue === 'number' ? revenue : 0,
       timeTaken: safeTime,
-      priority: ((priority || 'Medium') as Priority),
-      status: ((status || 'Todo') as Status),
+      priority: (priority || 'Medium') as Priority,
+      status: (status || 'Todo') as Status,
       notes: notes.trim() || undefined,
+      createdAt: initial?.createdAt ?? new Date().toISOString(),
       ...(initial ? { id: initial.id } : {}),
     };
+
     onSubmit(payload);
     onClose();
   };
@@ -85,6 +92,7 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{initial ? 'Edit Task' : 'Add Task'}</DialogTitle>
+
       <DialogContent>
         <Stack spacing={2} mt={1}>
           <TextField
@@ -96,6 +104,7 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
             required
             autoFocus
           />
+
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
               label="Revenue"
@@ -106,6 +115,7 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
               required
               fullWidth
             />
+
             <TextField
               label="Time Taken (h)"
               type="number"
@@ -116,27 +126,47 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
               fullWidth
             />
           </Stack>
+
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <FormControl fullWidth required>
               <InputLabel id="priority-label">Priority</InputLabel>
-              <Select labelId="priority-label" label="Priority" value={priority} onChange={e => setPriority(e.target.value as Priority)}>
+              <Select
+                labelId="priority-label"
+                label="Priority"
+                value={priority}
+                onChange={e => setPriority(e.target.value as Priority)}
+              >
                 {priorities.map(p => (
                   <MenuItem key={p} value={p}>{p}</MenuItem>
                 ))}
               </Select>
             </FormControl>
+
             <FormControl fullWidth required>
               <InputLabel id="status-label">Status</InputLabel>
-              <Select labelId="status-label" label="Status" value={status} onChange={e => setStatus(e.target.value as Status)}>
+              <Select
+                labelId="status-label"
+                label="Status"
+                value={status}
+                onChange={e => setStatus(e.target.value as Status)}
+              >
                 {statuses.map(s => (
                   <MenuItem key={s} value={s}>{s}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Stack>
-          <TextField label="Notes" value={notes} onChange={e => setNotes(e.target.value)} multiline minRows={2} />
+
+          <TextField
+            label="Notes"
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            multiline
+            minRows={2}
+          />
         </Stack>
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit} variant="contained" disabled={!canSubmit}>
@@ -146,5 +176,3 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
     </Dialog>
   );
 }
-
-
